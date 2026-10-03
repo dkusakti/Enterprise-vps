@@ -4,8 +4,8 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
 import vpsClient from './services/vps-client.js';
-import hardwareFingerprintController from '../backend/features/security/hardware-fingerprint/hardware-fingerprint.controller.js';
-import CapabilityPolicy from '../backend/application/capabilities/capability-policy.js';
+import { getSecureFingerprint } from './security/hardware-fingerprint.js';
+import CapabilityPolicy from './security/capability-policy.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -375,11 +375,12 @@ const closeDashboardAndShowLogin = async () => {
 
 const handleLoginAttempt = async (data) => {
   try {
-    const fp =
-      hardwareFingerprintController
-        .getSecureFingerprint();
+    const fingerprint = getSecureFingerprint();
 
-    if (!fp?.success) {
+    if (
+      typeof fingerprint !== 'string' ||
+      !/^[a-f0-9]{64}$/i.test(fingerprint)
+    ) {
       return {
         success: false,
         error: 'Perangkat gagal diverifikasi.'
@@ -391,7 +392,7 @@ const handleLoginAttempt = async (data) => {
       pathname: '/api/client/login',
       body: {
         ...(data || {}),
-        fingerprint: fp.data.fingerprint
+        fingerprint
       }
     });
 

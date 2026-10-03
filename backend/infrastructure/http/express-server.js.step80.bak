@@ -33,6 +33,10 @@ const ExpressServer = {
 
     appExpress.use(securityMiddleware);
 
+appExpress.use(
+      express.static(path.join(__dirname, '../../../frontend'))
+    );
+
     appExpress.use(healthRoutes);
 
     appExpress.use(loginRoutes);
